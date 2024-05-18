@@ -10,6 +10,7 @@
             integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
             crossorigin="anonymous"
         />
+        <link rel="stylesheet" href="assets/css/style.css">
     </head>
 
     <body class="bg-body-tertiary">
@@ -32,13 +33,7 @@
                 <div class="collapse navbar-collapse" id="navbarContent">
                     <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                         <li class="nav-item">
-                            <a
-                                class="nav-link text-white"
-                                aria-current="page"
-                                href="#"
-                            >
-                                Home
-                            </a>
+                            <a class="nav-link text-white" href="#"> Home </a>
                         </li>
                         <li class="nav-item">
                             <a
@@ -55,8 +50,15 @@
             </div>
         </nav>
 
+        <div class="mt-4">
+            <ul class="pagination justify-content-center"></ul>
+        </div>
+
         <main class="container my-4">
-            <section class="row row-cols-1 row-sm-cols-2 row-cols-md-4 g-4" id="cards"></section>
+            <section
+                class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4"
+                id="cards"
+            ></section>
         </main>
 
         <script
