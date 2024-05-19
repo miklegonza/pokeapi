@@ -2,7 +2,7 @@ const pagination = document.querySelector('.pagination');
 const cards = document.getElementById('cards');
 const search = document.getElementById('search');
 
-const url = 'https://pokeapi.co/api/v2/pokemon/';
+const url = 'https://pokeapi.co/api/v2/pokemon/?offset=0&limit=21';
 
 fetchAPI(url);
 addSearchListener();
