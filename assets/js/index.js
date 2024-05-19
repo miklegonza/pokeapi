@@ -1,9 +1,11 @@
 const pagination = document.querySelector('.pagination');
 const cards = document.getElementById('cards');
+const search = document.getElementById('search');
 
 const url = 'https://pokeapi.co/api/v2/pokemon/';
 
 fetchAPI(url);
+addSearchListener();
 
 async function fetchAPI(url) {
     const data = await fetch(url);
@@ -15,29 +17,33 @@ async function fetchAPI(url) {
     };
     cards.innerHTML = '';
     pokemonResults.forEach(async (pokemonResult) => {
-        const pokemonData = await fetch(pokemonResult.url);
-        const pokemon = await pokemonData.json();
-        const pokemonImage = validateImage(
-            pokemon.sprites.other.home.front_default
-        );
-        const pokemonCard = {
-            id: pokemon.id,
-            name: pokemon.name,
-            image: pokemonImage,
-            types: pokemon.types,
-            species: pokemon.species,
-            height: pokemon.height,
-            weight: pokemon.weight,
-            stats: pokemon.stats,
-        };
-        const card = await createCard(pokemonCard);
-        cards.innerHTML += card;
+        await createCards(pokemonResult.url);
     });
     setTimeout(() => drawSeparators(), 800);
     createPaginationButtons(paginationLinks);
 }
 
-async function createCard(data) {
+async function createCards(url) {
+    const pokemonData = await fetch(url);
+    const pokemon = await pokemonData.json();
+    const pokemonImage = validateImage(
+        pokemon.sprites.other.home.front_default
+    );
+    const pokemonCard = {
+        id: pokemon.id,
+        name: pokemon.name,
+        image: pokemonImage,
+        types: pokemon.types,
+        species: pokemon.species,
+        height: pokemon.height,
+        weight: pokemon.weight,
+        stats: pokemon.stats,
+    };
+    const card = await buildCard(pokemonCard);
+    cards.innerHTML += card;
+}
+
+async function buildCard(data) {
     const { id, name, image, types, species, height, weight, stats } = data;
     let pokemonName = capitalize(name);
     let pokemonTypes = getTypes(types);
@@ -184,9 +190,11 @@ function getStats(stats, type) {
 
     stats.forEach((stat) => {
         let progress = stat.base_stat;
-        names += `<p class="m-0 text-nowrap">${capitalize(
-            stat.stat.name
-        ).replace('Special-', 'Sp. ')}</p>`;
+        names += `
+            <p class="m-0 text-nowrap">
+                ${capitalize(stat.stat.name).replace('Special-', 'Sp. ')}
+            </p>
+        `;
         values += `<p class="m-0 text-nowrap">${progress}</p>`;
         bars += `
             <div
@@ -201,6 +209,20 @@ function getStats(stats, type) {
             </div>
         `;
     });
-
     return { names, values, bars };
+}
+
+async function searchPokemon(pokemon) {
+    pagination.innerHTML = '';
+    cards.innerHTML = '';
+    await createCards(url + pokemon);
+}
+
+function addSearchListener() {
+    search.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const pokemon = event.target.search.value.toLowerCase();
+        await searchPokemon(pokemon);
+        event.target.reset();
+    });
 }
