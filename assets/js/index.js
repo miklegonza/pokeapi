@@ -3,27 +3,6 @@ const cards = document.getElementById('cards');
 
 const url = 'https://pokeapi.co/api/v2/pokemon/';
 
-const typeColors = {
-    normal: '#a8a878',
-    grass: '#78c850',
-    ground: '#e0c068',
-    fighting: '#c03028',
-    rock: '#b8a038',
-    steel: '#b8b8d0',
-    fire: '#f08030',
-    electric: '#f8d030',
-    flying: '#a890f0',
-    psychic: '#f85888',
-    bug: '#a8b820',
-    dragon: '#7038f8',
-    water: '#6890f0',
-    ice: '#98d8d8',
-    poison: '#a040a0',
-    dark: '#705848',
-    ghost: '#705898',
-    fairy: '#ffaec9',
-};
-
 fetchAPI(url);
 
 async function fetchAPI(url) {
@@ -38,35 +17,88 @@ async function fetchAPI(url) {
     pokemonResults.forEach(async (pokemonResult) => {
         const pokemonData = await fetch(pokemonResult.url);
         const pokemon = await pokemonData.json();
+        const pokemonImage = validateImage(
+            pokemon.sprites.other.home.front_default
+        );
         const pokemonCard = {
             id: pokemon.id,
             name: pokemon.name,
-            abilities: pokemon.abilities,
-            image: validateImage(pokemon.sprites.other.home.front_default),
+            image: pokemonImage,
+            types: pokemon.types,
+            species: pokemon.species,
+            height: pokemon.height,
+            weight: pokemon.weight,
+            stats: pokemon.stats,
         };
-        cards.innerHTML += createCard(pokemonCard);
+        const card = await createCard(pokemonCard);
+        cards.innerHTML += card;
     });
+    setTimeout(() => drawSeparators(), 800);
     createPaginationButtons(paginationLinks);
 }
 
-function createCard(data) {
-    const { id, image, name, abilities } = data;
+async function createCard(data) {
+    const { id, name, image, types, species, height, weight, stats } = data;
     let pokemonName = capitalize(name);
-    let abilitiesList = '';
-    abilities.forEach((ability) => {
-        abilitiesList += `<li class="list-group-item">${ability.ability.name}</li>`;
-    });
+    let pokemonTypes = getTypes(types);
+    let color = pokemonTypes.type;
+    let pokemonDescription = await getDescription(species);
+    let pokemonHeight = height / 10;
+    let pokemonWeight = weight / 10;
+    let pokemonStats = getStats(stats, color);
+
     return `
         <div class="col">
-            <div class="card shadow-sm">
-                <img src="${image}" class="card-img-top"  alt="..." />
-                <div class="card-body">
-                    <h5 class="card-title">${id}. ${pokemonName}</h5>
+            <div class="card shadow-sm p-2">
+                <div class="${color} rounded">
+                    <div class="d-flex justify-content-between text-white px-3 py-2 fw-bold">
+                        <h4 class="card-title fw-bold">${pokemonName}</h4>
+                        <p class="m-0">#${id}</p>
+                    </div>
+                    <img src="${image}" class="pokemon d-block w-75" alt="${pokemonName}" />
+                    <div class="bg-white m-1 pt-5 rounded">
+                        <div class="d-flex justify-content-center gap-3">
+                            ${pokemonTypes.badges}
+                        </div>
+                        <div class="d-flex justify-content-center">
+                            <h5 class="${color}-text fw-bold">About</h5>
+                        </div>
+                        <p class="about-title mx-3 my-0 text-center">
+                            ${pokemonDescription}
+                        </p>
+                        <div class="aboutContainer p-2 d-flex justify-content-evenly align-items-center">
+                            <div class="text-center">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <i class="mx-2 fa-solid fa-ruler-vertical"></i>
+                                    <p class="m-0">${pokemonHeight} m</p>
+                                </div>
+                                <p class="about-title m-0">Height</p>
+                            </div>
+                            <div class="aboutSeparator mx-2 border-end"></div>
+                            <div class="text-center">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <i class="mx-2 fa-solid fa-weight-hanging"></i>
+                                    <p class="m-0">${pokemonWeight} kg</p>
+                                </div>
+                                <p class="about-title m-0">Weight</p>
+                            </div>
+                        </div>
+                        <div class="d-flex justify-content-center">
+                            <h5 class="${color}-text fw-bold">Stats</h5>
+                        </div>
+                        <div class="row px-3 pb-3 d-flex align-items-center">
+                            <div class="col-5 pe-0">
+                                ${pokemonStats.names}
+                            </div>
+                            <div class="col-1 p-0">
+                                ${pokemonStats.values}
+                            </div>
+                            <div class="col-6 d-flex flex-column gap-3">
+                                ${pokemonStats.bars}
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <ul class="list-group list-group-flush">
-                    <li class="list-group-item fw-bold">Abilities</li>
-                    ${abilitiesList}
-                </ul>
             </div>
         </div>
     `;
@@ -74,6 +106,16 @@ function createCard(data) {
 
 function capitalize(word) {
     return word.charAt(0).toUpperCase() + word.slice(1);
+}
+
+function drawSeparators() {
+    const aboutContainer =
+        document.querySelector('.aboutContainer').offsetHeight;
+    const aboutSeparator = document.querySelectorAll('.aboutSeparator');
+
+    aboutSeparator.forEach((separator) => {
+        separator.style.height = `calc(${aboutContainer}px - 1rem)`;
+    });
 }
 
 function createPaginationButtons(links) {
@@ -111,4 +153,54 @@ function createPaginationButtons(links) {
 
 function validateImage(image) {
     return image ? image : 'https://http.cat/404';
+}
+
+function getTypes(types) {
+    let type = types[0].type.name;
+    let badges = '';
+    types.forEach((pokemonType) => {
+        let name = pokemonType.type.name;
+        badges += `<span class="${name} px-3 badge rounded-pill text-white my-3">${capitalize(
+            name
+        )}</span>`;
+    });
+    return { type, badges };
+}
+
+async function getDescription(species) {
+    const data = await fetch(species.url);
+    const specie = await data.json();
+    const flavors = specie.flavor_text_entries.filter(
+        (element) => element.language.name === 'en'
+    );
+    const index = Math.floor(Math.random() * flavors.length);
+    return flavors[index].flavor_text.replace(/\n\f/g, ' ');
+}
+
+function getStats(stats, type) {
+    let names = '';
+    let values = '';
+    let bars = '';
+
+    stats.forEach((stat) => {
+        let progress = stat.base_stat;
+        names += `<p class="m-0 text-nowrap">${capitalize(
+            stat.stat.name
+        ).replace('Special-', 'Sp. ')}</p>`;
+        values += `<p class="m-0 text-nowrap">${progress}</p>`;
+        bars += `
+            <div
+                class="progress"
+                role="progressbar"
+                aria-valuenow="${progress}"
+                aria-valuemin="0"
+                aria-valuemax="100"
+                style="height: 8px; width: 100%"
+            >
+                <div class="${type} progress-bar" style="width: ${progress}%"></div>
+            </div>
+        `;
+    });
+
+    return { names, values, bars };
 }
