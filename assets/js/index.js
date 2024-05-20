@@ -215,7 +215,8 @@ function getStats(stats, type) {
 async function searchPokemon(pokemon) {
     pagination.innerHTML = '';
     cards.innerHTML = '';
-    await createCards(url + pokemon);
+    let newUrl = url.slice(0, url.indexOf('?')) + pokemon;
+    await createCards(newUrl);
 }
 
 function addSearchListener() {
