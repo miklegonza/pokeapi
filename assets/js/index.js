@@ -200,12 +200,15 @@ function getStats(stats, type) {
             <div
                 class="progress"
                 role="progressbar"
-                aria-valuenow="${progress}"
+                aria-valuenow="${progress / 2}"
                 aria-valuemin="0"
-                aria-valuemax="100"
+                aria-valuemax="200"
                 style="height: 8px; width: 100%"
             >
-                <div class="${type} progress-bar" style="width: ${progress}%"></div>
+                <div 
+                    class="${type} progress-bar" 
+                    style="width: ${progress / 2}%"
+                ></div>
             </div>
         `;
     });
